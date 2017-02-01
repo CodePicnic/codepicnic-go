@@ -1,1 +1,2 @@
-# codepicnic-go
+# CodePicnic library for Go
+
