@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	//"fmt"
+	"fmt"
 	//"github.com/Jeffail/gabs"
 	//"io"
 	"io/ioutil"
@@ -26,7 +26,14 @@ var user_agent = "CodePicnic GO"
 var codepicnic_api = "https://codepicnic.com"
 var codepicnic_oauth = "https://codepicnic.com/oauth/token"
 
-type Token struct {
+type CodePicnic struct {
+	ClientId string
+	SecretId string
+	Token    string
+	Consoles []ConsoleJson
+}
+
+type TokenJson struct {
 	Access  string `json:"access_token"`
 	Type    string `json:"token_type"`
 	Expires string `json:"expires_in"`
@@ -51,9 +58,9 @@ type ConsoleCollection struct {
 	Consoles []ConsoleJson `json:"consoles"`
 }
 
-func GetTokenAccess(client_id string, client_secret string) (string, error) {
+func (cp *CodePicnic) GetToken() error {
 	//TODO: return expiration
-	cp_payload := `{ "grant_type": "client_credentials","client_id": "` + client_id + `", "client_secret": "` + client_secret + `"}`
+	cp_payload := `{ "grant_type": "client_credentials","client_id": "` + cp.ClientId + `", "client_secret": "` + cp.SecretId + `"}`
 	var jsonStr = []byte(cp_payload)
 	req, err := http.NewRequest("POST", codepicnic_oauth, bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
@@ -62,24 +69,26 @@ func GetTokenAccess(client_id string, client_secret string) (string, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		if strings.Contains(err.Error(), "read: connection refused") {
-			return "", errors.New(ERROR_NOT_CONNECTED)
+			return errors.New(ERROR_NOT_CONNECTED)
 		}
 	}
 	if resp.StatusCode == 401 {
-		return "", errors.New(ERROR_NOT_AUTHORIZED)
+		return errors.New(ERROR_NOT_AUTHORIZED)
 	}
 	defer resp.Body.Close()
-	var token Token
+	var token TokenJson
 	_ = json.NewDecoder(resp.Body).Decode(&token)
-	return token.Access, nil
+	cp.Token = token.Access
+	return nil
+
 }
 
-func ListConsoles(access_token string) ([]ConsoleJson, error) {
+func (cp *CodePicnic) ListConsoles() error {
 
 	cp_consoles_url := codepicnic_api + "/api/consoles/all.json"
 	req, err := http.NewRequest("GET", cp_consoles_url, nil)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+access_token)
+	req.Header.Set("Authorization", "Bearer "+cp.Token)
 	req.Header.Set("User-Agent", user_agent)
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -88,9 +97,9 @@ func ListConsoles(access_token string) ([]ConsoleJson, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 401 {
-		return nil, errors.New(ERROR_INVALID_TOKEN)
+		return errors.New(ERROR_INVALID_TOKEN)
 	} else if resp.StatusCode == 429 {
-		return nil, errors.New(ERROR_USAGE_EXCEEDED)
+		return errors.New(ERROR_USAGE_EXCEEDED)
 	}
 	var console_collection ConsoleCollection
 	body, err := ioutil.ReadAll(resp.Body)
@@ -98,5 +107,99 @@ func ListConsoles(access_token string) ([]ConsoleJson, error) {
 	if err != nil {
 		panic(err)
 	}
-	return console_collection.Consoles, nil
+	cp.Consoles = console_collection.Consoles
+	return nil
+}
+
+func (cp *CodePicnic) GetConsole(console_id string) (ConsoleJson, error) {
+	var console_found ConsoleJson
+	for _, console := range cp.Consoles {
+		if console.ContainerName == console_id {
+			console_found = console
+			fmt.Println("found")
+			break
+		}
+	}
+	return console_found, nil
+}
+
+func (cp *CodePicnic) StartConsole(console ConsoleJson) error {
+
+	cp_consoles_url := codepicnic_api + "/api/consoles/" + console.ContainerName + "/start"
+	req, err := http.NewRequest("POST", cp_consoles_url, nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+cp.Token)
+	req.Header.Set("User-Agent", user_agent)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+	if resp.StatusCode == 401 {
+		return errors.New(ERROR_INVALID_TOKEN)
+	} else if resp.StatusCode == 429 {
+		return errors.New(ERROR_USAGE_EXCEEDED)
+	}
+	return nil
+}
+func (cp *CodePicnic) StopConsole(console ConsoleJson) error {
+
+	cp_consoles_url := codepicnic_api + "/api/consoles/" + console.ContainerName + "/stop"
+	req, err := http.NewRequest("POST", cp_consoles_url, nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+cp.Token)
+	req.Header.Set("User-Agent", user_agent)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+	if resp.StatusCode == 401 {
+		return errors.New(ERROR_INVALID_TOKEN)
+	} else if resp.StatusCode == 429 {
+		return errors.New(ERROR_USAGE_EXCEEDED)
+	}
+	return nil
+}
+func (cp *CodePicnic) RestartConsole(console ConsoleJson) error {
+
+	cp_consoles_url := codepicnic_api + "/api/consoles/" + console.ContainerName + "/restart"
+	req, err := http.NewRequest("POST", cp_consoles_url, nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+cp.Token)
+	req.Header.Set("User-Agent", user_agent)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+	if resp.StatusCode == 401 {
+		return errors.New(ERROR_INVALID_TOKEN)
+	} else if resp.StatusCode == 429 {
+		return errors.New(ERROR_USAGE_EXCEEDED)
+	}
+	return nil
+}
+
+func (cp *CodePicnic) RemoveConsole(console ConsoleJson) error {
+	cp_consoles_url := codepicnic_api + "/api/consoles" + "/" + console.ContainerName
+	var jsonStr = []byte("")
+	req, err := http.NewRequest("DELETE", cp_consoles_url, bytes.NewBuffer(jsonStr))
+	req.Header.Set("User-Agent", user_agent)
+	req.Header.Set("Authorization", "Bearer "+cp.Token)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	if resp.StatusCode == 401 {
+		return errors.New(ERROR_INVALID_TOKEN)
+	} else if resp.StatusCode == 429 {
+		return errors.New(ERROR_USAGE_EXCEEDED)
+	}
+	if err != nil {
+		panic(err)
+	}
+	return nil
 }
