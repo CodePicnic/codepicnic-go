@@ -1,5 +1,11 @@
 # CodePicnic library for Go
 
+## Instalation
+
+```javascript
+go get "github.com/CodePicnic/codepicnic-go"
+```
+
 ## Usage
 
 ### Initialization
