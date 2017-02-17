@@ -71,7 +71,7 @@ func Init(client_id string, client_secret string) error {
 		ClientSecret: client_secret,
 	}
 	var token TokenJson
-	body, err := OAuthRequest()
+	body, err := oauthRequest()
 	if err != nil {
 		return err
 	}
@@ -95,58 +95,7 @@ func ListConsoles() ([]ConsoleJson, error) {
 	if err != nil {
 		return console_collection.Consoles, err
 	}
-	//cp.Consoles = console_collection.Consoles
 	return console_collection.Consoles, nil
-}
-
-func ApiRequest(endpoint string, method string) ([]byte, error) {
-	var codepicnic_api = "https://codepicnic.com/api"
-
-	cp_consoles_url := codepicnic_api + endpoint
-	req, err := http.NewRequest(method, cp_consoles_url, nil)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+cp.Token)
-	req.Header.Set("User-Agent", user_agent)
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == 401 {
-		return nil, errors.New(ERROR_INVALID_TOKEN)
-	} else if resp.StatusCode == 429 {
-		return nil, errors.New(ERROR_USAGE_EXCEEDED)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return body, nil
-}
-
-func OAuthRequest() ([]byte, error) {
-	var codepicnic_oauth = "https://codepicnic.com/oauth/token"
-	cp_payload := `{ "grant_type": "client_credentials","client_id": "` + cp.ClientId + `", "client_secret": "` + cp.ClientSecret + `"}`
-	var jsonStr = []byte(cp_payload)
-	req, err := http.NewRequest("POST", codepicnic_oauth, bytes.NewBuffer(jsonStr))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", user_agent)
-	client := &http.Client{
-		Timeout: time.Second * 10,
-	}
-	resp, err := client.Do(req)
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		if strings.Contains(err.Error(), "read: connection refused") {
-			return nil, errors.New(ERROR_NOT_CONNECTED)
-		}
-	}
-	if resp.StatusCode == 401 {
-		return nil, errors.New(ERROR_NOT_AUTHORIZED)
-	}
-	return body, nil
 }
 
 func GetConsole(console_id string) (ConsoleJson, error) {
@@ -196,4 +145,54 @@ func (console *ConsoleJson) Remove() error {
 		return err
 	}
 	return nil
+}
+
+func ApiRequest(endpoint string, method string) ([]byte, error) {
+	var codepicnic_api = "https://codepicnic.com/api"
+
+	cp_consoles_url := codepicnic_api + endpoint
+	req, err := http.NewRequest(method, cp_consoles_url, nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+cp.Token)
+	req.Header.Set("User-Agent", user_agent)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == 401 {
+		return nil, errors.New(ERROR_INVALID_TOKEN)
+	} else if resp.StatusCode == 429 {
+		return nil, errors.New(ERROR_USAGE_EXCEEDED)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
+func oauthRequest() ([]byte, error) {
+	var codepicnic_oauth = "https://codepicnic.com/oauth/token"
+	cp_payload := `{ "grant_type": "client_credentials","client_id": "` + cp.ClientId + `", "client_secret": "` + cp.ClientSecret + `"}`
+	var jsonStr = []byte(cp_payload)
+	req, err := http.NewRequest("POST", codepicnic_oauth, bytes.NewBuffer(jsonStr))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", user_agent)
+	client := &http.Client{
+		Timeout: time.Second * 10,
+	}
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		if strings.Contains(err.Error(), "read: connection refused") {
+			return nil, errors.New(ERROR_NOT_CONNECTED)
+		}
+	}
+	if resp.StatusCode == 401 {
+		return nil, errors.New(ERROR_NOT_AUTHORIZED)
+	}
+	return body, nil
 }
