@@ -17,7 +17,7 @@ func main() {
     client_id := "XXXXXXXXXXXXXX"
     secret_id := "YYYYYYYYYYYYYY"
 
-    err := codepicnic.Auth(client_id, secret_id)
+    err := codepicnic.Init(client_id, secret_id)
     if err != nil {
         fmt.Println(err.Error())
     } else {

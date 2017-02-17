@@ -64,7 +64,7 @@ type request struct {
 	Headers map[string]string
 }
 
-func Auth(client_id string, client_secret string) error {
+func Init(client_id string, client_secret string) error {
 	//TODO: return expiration
 	cp = codepicnic{
 		ClientId:     client_id,
