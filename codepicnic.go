@@ -183,7 +183,7 @@ func (console *ConsoleJson) Show() ([]byte, error) {
 	cp_api_path := "/consoles/" + console.ContainerName + "/show"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
-		Method:   "POST",
+		Method:   "GET",
 	}
 	body, err := api.Send()
 	if err != nil {
