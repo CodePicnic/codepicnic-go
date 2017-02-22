@@ -185,7 +185,7 @@ func (console *ConsoleJson) Show() ([]byte, error) {
 		Endpoint: cp_api_path,
 		Method:   "POST",
 	}
-	body, err := api.Send()
+	body, err = api.Send()
 	if err != nil {
 		return "", err
 	}
