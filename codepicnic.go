@@ -187,7 +187,7 @@ func (console *ConsoleJson) Show() ([]byte, error) {
 	}
 	body, err := api.Send()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	return body, nil
 }
