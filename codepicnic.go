@@ -179,7 +179,7 @@ func (console *ConsoleJson) Restart() error {
 	return nil
 }
 
-func (console *ConsoleJson) Show() (string, error) {
+func (console *ConsoleJson) Show() ([]byte, error) {
 	cp_api_path := "/consoles/" + console.ContainerName + "/show"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
