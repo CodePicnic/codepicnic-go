@@ -179,6 +179,19 @@ func (console *ConsoleJson) Restart() error {
 	return nil
 }
 
+func (console *ConsoleJson) Show() (string, error) {
+	cp_api_path := "/consoles/" + console.ContainerName + "/show"
+	api := ApiRequest{
+		Endpoint: cp_api_path,
+		Method:   "POST",
+	}
+	body, err := api.Send()
+	if err != nil {
+		return "", err
+	}
+	return body, nil
+}
+
 func (console *ConsoleJson) Remove() error {
 	cp_api_path := "/consoles" + "/" + console.ContainerName
 	api := ApiRequest{
