@@ -50,8 +50,9 @@ type ConsoleJson struct {
 	CustomImage   string `json:"custom_image"`
 	CreatedAt     string `json:"created_at"`
 	Permalink     string `json:"permalink"`
-	//Url           string `json:"url"`
-	//TerminalUrl   string `json:"terminal_url"`
+	Url           string `json:"url"`
+	EmbedUrl      string `json:"embed_url"`
+	TerminalUrl   string `json:"terminal_url"`
 }
 
 type ConsoleCollection struct {
@@ -140,6 +141,18 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 		}
 	}
 	return console_found, nil
+}
+func (console *ConsoleJson) Status() error {
+	cp_api_path := "/consoles/" + console.ContainerName + "/status"
+	api := ApiRequest{
+		Endpoint: cp_api_path,
+		Method:   "GET",
+	}
+	body, err := api.Send()
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
 }
 
 func (console *ConsoleJson) Start() error {
