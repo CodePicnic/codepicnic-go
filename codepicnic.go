@@ -121,7 +121,7 @@ func GetToken() (string, error) {
 func GetStatus() (string, error) {
 	return cp.Status, nil
 }
-func SetStatus(status) error {
+func SetStatus(status string) error {
 	cp.Status = status
 	return nil
 }
@@ -152,6 +152,9 @@ func GetConsole(console_id string) (Console, error) {
 		Method:   "GET",
 	}
 	body, err := api.Send()
+	if err != nil {
+		return console, err
+	}
 	jsonBody, err := gabs.ParseJSON(body)
 	if err != nil {
 		return console, err
