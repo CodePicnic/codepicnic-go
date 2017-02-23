@@ -161,7 +161,6 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 		return console, err
 	}
 	console_json, err := jsonBody.Search("console").ChildrenMap()
-	fmt.Printf("")
 	if err != nil {
 		return console, err
 	}
