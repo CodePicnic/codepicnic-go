@@ -129,20 +129,46 @@ func ListConsoles() ([]ConsoleJson, error) {
 	return console_collection.Consoles, nil
 }
 
+/*
+{
+	"console": {
+		"id": 332677,
+		"content": null,
+		"title": "",
+		"name": "A Bash console ",
+		"container_name": "69a9f09810cd9275f0316489091201ce",
+		"container_type": "bash",
+		"custom_image": null,
+		"created_at": "2017-02-23T14:34:41.000Z",
+		"permalink": "ef8075a5f19b24491f871778b96ae0c6",
+		"url": "https://codepicnic.com/consoles/ef8075a5f19b24491f871778b96ae0c6",
+		"embed_url": "https://codepicnic.com/consoles/ef8075a5f19b24491f871778b96ae0c6/embed",
+		"terminal_url": "https://69a9f09810cd9275f0316489091201ce-console.codepicnic.com/static/term.html?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjb2RlcGljbmljIiwiY29udGFpbmVyIjoiNjlhOWYwOTgxMGNkOTI3NWYwMzE2NDg5MDkxMjAxY2UiLCJleHAiOjE0ODc4NzgyOTR9.NAVoKenzkWXh2RKHuHILlcqCQg8w0r3marxfMZanzbM"
+	}
+}*/
+
 func GetConsole(console_id string) (ConsoleJson, error) {
-	var console_found ConsoleJson
-	consoles, err := ListConsoles()
+	var console ConsoleJson
+	cp_api_path := "/consoles/" + console.ContainerName
+	api := ApiRequest{
+		Endpoint: cp_api_path,
+		Method:   "GET",
+	}
+	body, err := api.Send()
+	jsonBody, err := gabs.ParseJSON(body)
 	if err != nil {
-		return console_found, err
+		return console, err
 	}
-	for _, console := range consoles {
-		if console.ContainerName == console_id {
-			console_found = console
-			break
-		}
+	console_json, err := jsonBody.Search("object").ChildrenMap()
+	if err != nil {
+		return console, err
 	}
-	return console_found, nil
+	for key, child := range console_json {
+		fmt.Printf("key: %v, value: %v\n", key, child.Data().(string))
+	}
+	return console, nil
 }
+
 func (console *ConsoleJson) Status() (string, error) {
 	cp_api_path := "/consoles/" + console.ContainerName + "/status"
 	api := ApiRequest{
@@ -157,7 +183,6 @@ func (console *ConsoleJson) Status() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(jsonBody.String())
 	status, ok := jsonBody.Path("state.status").Data().(string)
 	if ok == false {
 		return "", err
@@ -200,19 +225,6 @@ func (console *ConsoleJson) Restart() error {
 		return err
 	}
 	return nil
-}
-
-func (console *ConsoleJson) Show() ([]byte, error) {
-	cp_api_path := "/consoles/" + console.ContainerName
-	api := ApiRequest{
-		Endpoint: cp_api_path,
-		Method:   "GET",
-	}
-	body, err := api.Send()
-	if err != nil {
-		return nil, err
-	}
-	return body, nil
 }
 
 func (console *ConsoleJson) Remove() error {
