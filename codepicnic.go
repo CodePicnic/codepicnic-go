@@ -156,6 +156,7 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 	}
 	body, err := api.Send()
 	jsonBody, err := gabs.ParseJSON(body)
+	fmt.Println(jsonBody.String())
 	if err != nil {
 		return console, err
 	}
