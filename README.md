@@ -37,13 +37,13 @@ func main() {
 ### Get Consoles List 
 
 ```
-var consoles []codepicnic.ConsoleJson
+var consoles []codepicnic.Console
 consoles, err = codepicnic.ListConsoles()`
 ```
 
 ### Get Console object
 ```
-var console codepicnic.ConsoleJson
+var console codepicnic.Console
 console, err = codepicnic.GetConsole("3b0e40daaad6cd0ac3ec16efa5a25762")
 
 ```

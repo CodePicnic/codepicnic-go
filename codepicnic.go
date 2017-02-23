@@ -29,7 +29,7 @@ type codepicnic struct {
 	ClientId     string
 	ClientSecret string
 	Token        string
-	Consoles     []ConsoleJson
+	Consoles     []Console
 }
 
 var cp codepicnic
@@ -41,7 +41,7 @@ type TokenJson struct {
 	Created string `json:"created_at"`
 }
 
-type ConsoleJson struct {
+type Console struct {
 	Id            int    `json:"id"`
 	Content       string `json:"content"`
 	Title         string `json:"title"`
@@ -57,7 +57,7 @@ type ConsoleJson struct {
 }
 
 type ConsoleCollection struct {
-	Consoles []ConsoleJson `json:"consoles"`
+	Consoles []Console `json:"consoles"`
 }
 
 type StackJson struct {
@@ -111,7 +111,7 @@ func GetToken() (string, error) {
 	return cp.Token, nil
 }
 
-func ListConsoles() ([]ConsoleJson, error) {
+func ListConsoles() ([]Console, error) {
 	var console_collection ConsoleCollection
 
 	api := ApiRequest{
@@ -129,26 +129,8 @@ func ListConsoles() ([]ConsoleJson, error) {
 	return console_collection.Consoles, nil
 }
 
-/*
-{
-	"console": {
-		"id": 332677,
-		"content": null,
-		"title": "",
-		"name": "A Bash console ",
-		"container_name": "69a9f09810cd9275f0316489091201ce",
-		"container_type": "bash",
-		"custom_image": null,
-		"created_at": "2017-02-23T14:34:41.000Z",
-		"permalink": "ef8075a5f19b24491f871778b96ae0c6",
-		"url": "https://codepicnic.com/consoles/ef8075a5f19b24491f871778b96ae0c6",
-		"embed_url": "https://codepicnic.com/consoles/ef8075a5f19b24491f871778b96ae0c6/embed",
-		"terminal_url": "https://69a9f09810cd9275f0316489091201ce-console.codepicnic.com/static/term.html?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjb2RlcGljbmljIiwiY29udGFpbmVyIjoiNjlhOWYwOTgxMGNkOTI3NWYwMzE2NDg5MDkxMjAxY2UiLCJleHAiOjE0ODc4NzgyOTR9.NAVoKenzkWXh2RKHuHILlcqCQg8w0r3marxfMZanzbM"
-	}
-}*/
-
-func GetConsole(console_id string) (ConsoleJson, error) {
-	var console ConsoleJson
+func GetConsole(console_id string) (Console, error) {
+	var console Console
 	cp_api_path := "/consoles/" + console_id
 	api := ApiRequest{
 		Endpoint: cp_api_path,
@@ -156,7 +138,6 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 	}
 	body, err := api.Send()
 	jsonBody, err := gabs.ParseJSON(body)
-	fmt.Println(jsonBody.String())
 	if err != nil {
 		return console, err
 	}
@@ -164,7 +145,7 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 	if err != nil {
 		return console, err
 	}
-	console = ConsoleJson{
+	console = Console{
 		Id:            int(console_json["id"].Data().(float64)),
 		Content:       sanitize(console_json["content"].Data()),
 		Title:         sanitize(console_json["title"].Data().(string)),
@@ -172,19 +153,16 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 		ContainerName: sanitize(console_json["container_name"].Data().(string)),
 		ContainerType: sanitize(console_json["container_type"].Data().(string)),
 		CustomImage:   sanitize(console_json["created_at"].Data().(string)),
+		CreatedAt:     sanitize(console_json["created_at"].Data().(string)),
 		Permalink:     sanitize(console_json["permalink"].Data().(string)),
 		Url:           sanitize(console_json["url"].Data().(string)),
 		EmbedUrl:      sanitize(console_json["embed_url"].Data().(string)),
 		TerminalUrl:   sanitize(console_json["terminal_url"].Data().(string)),
 	}
-	/*
-		for key, child := range console_json {
-			fmt.Printf("key: %v, value: %v\n", key, child.Data().(string))
-		}*/
 	return console, nil
 }
 
-func (console *ConsoleJson) Status() (string, error) {
+func (console *Console) Status() (string, error) {
 	cp_api_path := "/consoles/" + console.ContainerName + "/status"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
@@ -205,7 +183,7 @@ func (console *ConsoleJson) Status() (string, error) {
 	return status, nil
 }
 
-func (console *ConsoleJson) Start() error {
+func (console *Console) Start() error {
 	cp_api_path := "/consoles/" + console.ContainerName + "/start"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
@@ -217,7 +195,7 @@ func (console *ConsoleJson) Start() error {
 	}
 	return nil
 }
-func (console *ConsoleJson) Stop() error {
+func (console *Console) Stop() error {
 	cp_api_path := "/consoles/" + console.ContainerName + "/stop"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
@@ -229,7 +207,7 @@ func (console *ConsoleJson) Stop() error {
 	}
 	return nil
 }
-func (console *ConsoleJson) Restart() error {
+func (console *Console) Restart() error {
 	cp_api_path := "/consoles/" + console.ContainerName + "/restart"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
@@ -242,7 +220,7 @@ func (console *ConsoleJson) Restart() error {
 	return nil
 }
 
-func (console *ConsoleJson) Remove() error {
+func (console *Console) Remove() error {
 	cp_api_path := "/consoles" + "/" + console.ContainerName
 	api := ApiRequest{
 		Endpoint: cp_api_path,
@@ -255,7 +233,7 @@ func (console *ConsoleJson) Remove() error {
 	return nil
 }
 
-func (console *ConsoleJson) Exec(command string) ([]CommandJson, error) {
+func (console *Console) Exec(command string) ([]CommandJson, error) {
 	var CmdCollection []CommandJson
 	cp_api_path := "/consoles" + "/" + console.ContainerName + "/exec"
 	cp_payload := ` { "commands": "` + command + `" }`
@@ -282,7 +260,7 @@ func (console *ConsoleJson) Exec(command string) ([]CommandJson, error) {
 	return CmdCollection, nil
 }
 
-func (console *ConsoleJson) ReadFile(file string) ([]byte, error) {
+func (console *Console) ReadFile(file string) ([]byte, error) {
 	cp_api_path := "/consoles" + "/" + console.ContainerName + "/read_file?path=" + file
 	api := ApiRequest{
 		Endpoint: cp_api_path,
@@ -295,7 +273,7 @@ func (console *ConsoleJson) ReadFile(file string) ([]byte, error) {
 	return body, nil
 }
 
-func (console *ConsoleJson) Search(term string) ([]FileJson, error) {
+func (console *Console) Search(term string) ([]FileJson, error) {
 	var file_collection []FileJson
 	cp_api_path := "/consoles" + "/" + console.ContainerName + "/search?term=" + term
 	api := ApiRequest{
@@ -340,7 +318,7 @@ func (console *ConsoleJson) Search(term string) ([]FileJson, error) {
 	return file_collection, nil
 }
 
-func (console *ConsoleJson) UploadFile(src_file string, dst_file string) ([]byte, error) {
+func (console *Console) UploadFile(src_file string, dst_file string) ([]byte, error) {
 	cp_api_path := "/consoles" + "/" + console.ContainerName + "/upload_file"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
