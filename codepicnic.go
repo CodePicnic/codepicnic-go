@@ -164,22 +164,19 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 	if err != nil {
 		return console, err
 	}
-	console_json_data := console_json["id"].Data()
-	fmt.Printf("%+v\n", console_json_data)
-	/*
-		console = &ConsoleJson{
-			Id:            console_json.Data()["id"].(int),
-			Content:       console_json.Data()["content"].(string),
-			Title:         console_json.Data()["title"].(string),
-			Name:          console_json.Data()["name"].(string),
-			ContainerName: console_json.Data()["container_name"].(string),
-			ContainerType: console_json.Data()["container_type"].(string),
-			CustomImage:   console_json.Data()["created_at"].(string),
-			Permalink:     console_json.Data()["permalink"].(string),
-			Url:           console_json.Data()["url"].(string),
-			EmbedUrl:      console_json.Data()["embed_url"].(string),
-			TerminalUrl:   console_json.Data()["terminal_url"].(string),
-		}*/
+	console = ConsoleJson{
+		Id:            console_json["id"].Data().(int),
+		Content:       console_json["content"].Data().(string),
+		Title:         console_json["title"].Data().(string),
+		Name:          console_json["name"].Data().(string),
+		ContainerName: console_json["container_name"].Data().(string),
+		ContainerType: console_json["container_type"].Data().(string),
+		CustomImage:   console_json["created_at"].Data().(string),
+		Permalink:     console_json["permalink"].Data().(string),
+		Url:           console_json["url"].Data().(string),
+		EmbedUrl:      console_json["embed_url"].Data().(string),
+		TerminalUrl:   console_json["terminal_url"].Data().(string),
+	}
 	/*
 		for key, child := range console_json {
 			fmt.Printf("key: %v, value: %v\n", key, child.Data().(string))
