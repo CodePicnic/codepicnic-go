@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/Jeffail/gabs"
 	"io"
 	"io/ioutil"
@@ -156,6 +157,7 @@ func (console *ConsoleJson) Status() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	fmt.Println(jsonBody.String())
 	status, ok := jsonBody.Path("status.state").Data().(string)
 	if ok == false {
 		return "", err
