@@ -166,7 +166,7 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 	}
 	console = ConsoleJson{
 		Id:            int(console_json["id"].Data().(float64)),
-		Content:       console_json["content"].Data().(string),
+		Content:       ignoreNil(console_json["content"].Data().(string)),
 		Title:         console_json["title"].Data().(string),
 		Name:          console_json["name"].Data().(string),
 		ContainerName: console_json["container_name"].Data().(string),
@@ -471,4 +471,13 @@ func oauthRequest() ([]byte, error) {
 		return nil, errors.New(ERROR_NOT_AUTHORIZED)
 	}
 	return body, nil
+}
+
+func ignoreNil(i interface{}) string {
+	if i == nil {
+		return ""
+	} else {
+		return i.(string)
+	}
+
 }
