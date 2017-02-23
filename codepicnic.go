@@ -160,12 +160,13 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 	if err != nil {
 		return console, err
 	}
-	console_json, err := jsonBody.Search("object").ChildrenMap()
+	console_json, err := jsonBody.Search("object").Children()
 	if err != nil {
 		return console, err
 	}
-	for key, child := range console_json {
-		fmt.Printf("key: %v, value: %v\n", key, child.Data().(string))
+	for _, child := range console_json {
+		//fmt.Printf("key: %v, value: %v\n", key, child.Data().(string))
+		fmt.Println(child.Data().(string))
 	}
 	return console, nil
 }
