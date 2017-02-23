@@ -166,16 +166,16 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 	}
 	console = ConsoleJson{
 		Id:            int(console_json["id"].Data().(float64)),
-		Content:       ignoreNil(console_json["content"].Data()),
-		Title:         console_json["title"].Data().(string),
-		Name:          console_json["name"].Data().(string),
-		ContainerName: console_json["container_name"].Data().(string),
-		ContainerType: console_json["container_type"].Data().(string),
-		CustomImage:   console_json["created_at"].Data().(string),
-		Permalink:     console_json["permalink"].Data().(string),
-		Url:           console_json["url"].Data().(string),
-		EmbedUrl:      console_json["embed_url"].Data().(string),
-		TerminalUrl:   console_json["terminal_url"].Data().(string),
+		Content:       sanitize(console_json["content"].Data()),
+		Title:         sanitize(console_json["title"].Data().(string)),
+		Name:          sanitize(console_json["name"].Data().(string)),
+		ContainerName: sanitize(console_json["container_name"].Data().(string)),
+		ContainerType: sanitize(console_json["container_type"].Data().(string)),
+		CustomImage:   sanitize(console_json["created_at"].Data().(string)),
+		Permalink:     sanitize(console_json["permalink"].Data().(string)),
+		Url:           sanitize(console_json["url"].Data().(string)),
+		EmbedUrl:      sanitize(console_json["embed_url"].Data().(string)),
+		TerminalUrl:   sanitize(console_json["terminal_url"].Data().(string)),
 	}
 	/*
 		for key, child := range console_json {
@@ -473,7 +473,7 @@ func oauthRequest() ([]byte, error) {
 	return body, nil
 }
 
-func ignoreNil(i interface{}) string {
+func sanitize(i interface{}) string {
 	if i == nil {
 		return ""
 	} else {
