@@ -164,10 +164,26 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 	if err != nil {
 		return console, err
 	}
-	for key, child := range console_json {
-		fmt.Printf("key: %v, value: %v\n", key, child.Data().(string))
-		//fmt.Println(child.Data().(string))
-	}
+	console_json_data := console_json["id"].Data()
+	fmt.Printf("%+v\n", console_json_data)
+	/*
+		console = &ConsoleJson{
+			Id:            console_json.Data()["id"].(int),
+			Content:       console_json.Data()["content"].(string),
+			Title:         console_json.Data()["title"].(string),
+			Name:          console_json.Data()["name"].(string),
+			ContainerName: console_json.Data()["container_name"].(string),
+			ContainerType: console_json.Data()["container_type"].(string),
+			CustomImage:   console_json.Data()["created_at"].(string),
+			Permalink:     console_json.Data()["permalink"].(string),
+			Url:           console_json.Data()["url"].(string),
+			EmbedUrl:      console_json.Data()["embed_url"].(string),
+			TerminalUrl:   console_json.Data()["terminal_url"].(string),
+		}*/
+	/*
+		for key, child := range console_json {
+			fmt.Printf("key: %v, value: %v\n", key, child.Data().(string))
+		}*/
 	return console, nil
 }
 
