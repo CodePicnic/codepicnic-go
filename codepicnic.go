@@ -142,7 +142,7 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 	}
 	return console_found, nil
 }
-func (console *ConsoleJson) Status() error {
+func (console *ConsoleJson) Status() ([]byte, error) {
 	cp_api_path := "/consoles/" + console.ContainerName + "/status"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
