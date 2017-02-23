@@ -180,7 +180,7 @@ func (console *ConsoleJson) Restart() error {
 }
 
 func (console *ConsoleJson) Show() ([]byte, error) {
-	cp_api_path := "/consoles/" + console.ContainerName + "/status"
+	cp_api_path := "/consoles/" + console.ContainerName
 	api := ApiRequest{
 		Endpoint: cp_api_path,
 		Method:   "GET",
