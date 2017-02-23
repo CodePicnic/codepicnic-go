@@ -166,7 +166,7 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 	}
 	console = ConsoleJson{
 		Id:            int(console_json["id"].Data().(float64)),
-		Content:       ignoreNil(console_json["content"].Data().(string)),
+		Content:       ignoreNil(console_json["content"].Data()),
 		Title:         console_json["title"].Data().(string),
 		Name:          console_json["name"].Data().(string),
 		ContainerName: console_json["container_name"].Data().(string),
