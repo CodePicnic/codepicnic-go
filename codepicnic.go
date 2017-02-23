@@ -158,7 +158,7 @@ func (console *ConsoleJson) Status() (string, error) {
 		return "", err
 	}
 	fmt.Println(jsonBody.String())
-	status, ok := jsonBody.Path("status.state").Data().(string)
+	status, ok := jsonBody.Path("state.status").Data().(string)
 	if ok == false {
 		return "", err
 	}
