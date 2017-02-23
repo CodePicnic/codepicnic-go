@@ -61,4 +61,12 @@ console.Restart()
 ```
 console.Remove()
 ```
+### Get status of a Console: running, stopped, exited
 
+```
+    status, err := console.Status()
+    if status == "exited" {
+        console.Start()
+    }
+
+```
