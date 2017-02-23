@@ -152,12 +152,12 @@ func (console *ConsoleJson) Status() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	jsonBody, err := gabs.ParseJSON()
+	jsonBody, err := gabs.ParseJSON(body)
 	if err != nil {
 		return "", err
 	}
-	status, ok := jsonParsed.Path("status.state").Data().(string)
-	if err != nil {
+	status, ok := jsonBody.Path("status.state").Data().(string)
+	if ok == false {
 		return "", err
 	}
 	return status, nil
