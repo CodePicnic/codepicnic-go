@@ -142,7 +142,7 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 	}
 	return console_found, nil
 }
-func (console *ConsoleJson) Status() ([]byte, error) {
+func (console *ConsoleJson) Status() (string, error) {
 	cp_api_path := "/consoles/" + console.ContainerName + "/status"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
@@ -150,9 +150,17 @@ func (console *ConsoleJson) Status() ([]byte, error) {
 	}
 	body, err := api.Send()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return body, nil
+	jsonBody, err := gabs.ParseJSON()
+	if err != nil {
+		return "", err
+	}
+	status, ok := jsonParsed.Path("status.state").Data().(string)
+	if err != nil {
+		return "", err
+	}
+	return status, nil
 }
 
 func (console *ConsoleJson) Start() error {
