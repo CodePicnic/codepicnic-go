@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -17,11 +18,15 @@ import (
 
 const ERROR_NOT_AUTHORIZED = "Not Authorized"
 const ERROR_NOT_CONNECTED = "Disconnected"
+const ERROR_CONNECTION_REFUSED = "Connection Refused"
+const ERROR_DNS_LOOKUP = "Host not found"
 const ERROR_NOT_FOUND = "Not Found"
 const ERROR_EMPTY_CREDENTIALS = "No Credentials"
 const ERROR_EMPTY_TOKEN = "No Token"
 const ERROR_INVALID_TOKEN = "Invalid Token"
 const ERROR_USAGE_EXCEEDED = "Usage Exceeded"
+
+const CP_STATUS_ONLINE = "online"
 
 var user_agent = "CodePicnic GO"
 
@@ -29,7 +34,7 @@ type codepicnic struct {
 	ClientId     string
 	ClientSecret string
 	Token        string
-	Consoles     []Console
+	Status       string
 }
 
 var cp codepicnic
@@ -105,11 +110,20 @@ func Init(client_id string, client_secret string) error {
 	}
 	err = json.Unmarshal(body, &token)
 	cp.Token = token.Access
+	cp.Status = CP_STATUS_ONLINE
 	return nil
 }
 
 func GetToken() (string, error) {
 	return cp.Token, nil
+}
+
+func GetStatus() (string, error) {
+	return cp.Status, nil
+}
+func SetStatus(status) error {
+	cp.Status = status
+	return nil
 }
 
 func ListConsoles() ([]Console, error) {
@@ -361,18 +375,35 @@ func (api *ApiRequest) Send() ([]byte, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+cp.Token)
 	req.Header.Set("User-Agent", user_agent)
-	var api_timeout time.Duration
-	if Api.Timeout == nil {
-		api_timeout = time.Second * 60
-	} else {
-		api_timeout = Api.Timeout
+	/*
+		var api_timeout time.Duration
+		if api.Timeout > time.Second * 0 {
+			api_timeout = api.Timeout
+		} else {
+			//default timeout
+			api_timeout = time.Second * 60
+		}*/
+	var api_transport = &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout: 5 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 5 * time.Second,
 	}
+
 	client := &http.Client{
-		Timeout: api_timeout,
+		//Timeout: api_timeout,
+		Timeout:   time.Second * 10,
+		Transport: api_transport,
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		if strings.Contains(err.Error(), "no such host") {
+			return nil, errors.New(ERROR_DNS_LOOKUP)
+		} else if strings.Contains(err.Error(), "connection refused") {
+			return nil, errors.New(ERROR_CONNECTION_REFUSED)
+		} else {
+			return nil, err
+		}
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 401 {
