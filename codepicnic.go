@@ -149,7 +149,7 @@ func ListConsoles() ([]ConsoleJson, error) {
 
 func GetConsole(console_id string) (ConsoleJson, error) {
 	var console ConsoleJson
-	cp_api_path := "/consoles/" + console.ContainerName
+	cp_api_path := "/consoles/" + console_id
 	api := ApiRequest{
 		Endpoint: cp_api_path,
 		Method:   "GET",
@@ -161,6 +161,7 @@ func GetConsole(console_id string) (ConsoleJson, error) {
 		return console, err
 	}
 	console_json, err := jsonBody.Search("object").Children()
+	fmt.Printf("")
 	if err != nil {
 		return console, err
 	}
