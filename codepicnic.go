@@ -89,6 +89,7 @@ type ApiRequest struct {
 	Method   string
 	Endpoint string
 	Payload  string
+	Timeout  time.Duration
 }
 
 func Init(client_id string, client_secret string) error {
@@ -167,6 +168,7 @@ func (console *Console) Status() (string, error) {
 	api := ApiRequest{
 		Endpoint: cp_api_path,
 		Method:   "GET",
+		Timeout:  time.Second * 10,
 	}
 	body, err := api.Send()
 	if err != nil {
@@ -359,7 +361,15 @@ func (api *ApiRequest) Send() ([]byte, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+cp.Token)
 	req.Header.Set("User-Agent", user_agent)
-	client := &http.Client{}
+	var api_timeout time.Duration
+	if Api.Timeout == nil {
+		api_timeout = time.Second * 60
+	} else {
+		api_timeout = Api.Timeout
+	}
+	client := &http.Client{
+		Timeout: api_timeout,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
