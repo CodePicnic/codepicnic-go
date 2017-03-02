@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
+	//"fmt"
 	"github.com/Jeffail/gabs"
 	"io"
 	"io/ioutil"
@@ -28,6 +28,7 @@ const ERROR_EMPTY_CREDENTIALS = "No Credentials"
 const ERROR_EMPTY_TOKEN = "No Token"
 const ERROR_INVALID_TOKEN = "Invalid Token"
 const ERROR_USAGE_EXCEEDED = "Usage Exceeded"
+const ERROR_CONSOLE = "Console Error"
 
 var user_agent = "CodePicnic GO"
 
@@ -44,25 +45,6 @@ type TokenJson struct {
 	Type    string `json:"token_type"`
 	Expires string `json:"expires_in"`
 	Created string `json:"created_at"`
-}
-
-type Console struct {
-	Id            int    `json:"id"`
-	Content       string `json:"content"`
-	Title         string `json:"title"`
-	Name          string `json:"name"`
-	containerName string `json:"container_name"`
-	ContainerType string `json:"container_type"`
-	CustomImage   string `json:"custom_image"`
-	CreatedAt     string `json:"created_at"`
-	Permalink     string `json:"permalink"`
-	Url           string `json:"url"`
-	EmbedUrl      string `json:"embed_url"`
-	TerminalUrl   string `json:"terminal_url"`
-}
-
-type ConsoleCollection struct {
-	Consoles []Console `json:"consoles"`
 }
 
 type StackJson struct {
@@ -88,14 +70,6 @@ type FileJson struct {
 	Path string  `json:"path"`
 	Type string  `json:"type"`
 	Size float64 `json:"size"`
-}
-
-type ConsoleRequest struct {
-	Title    string
-	Size     string
-	Type     string
-	Hostname string
-	Mode     string
 }
 
 type ApiRequest struct {
@@ -163,18 +137,18 @@ func GetConsole(console_id string) (Console, error) {
 		return console, err
 	}
 	console = Console{
-		Id:            int(console_json["id"].Data().(float64)),
-		Content:       sanitize(console_json["content"].Data()),
-		Title:         sanitize(console_json["title"].Data().(string)),
-		Name:          sanitize(console_json["name"].Data().(string)),
+		id:            int(console_json["id"].Data().(float64)),
+		content:       sanitize(console_json["content"].Data()),
+		title:         sanitize(console_json["title"].Data().(string)),
+		name:          sanitize(console_json["name"].Data().(string)),
 		containerName: sanitize(console_json["container_name"].Data().(string)),
-		ContainerType: sanitize(console_json["container_type"].Data().(string)),
-		CustomImage:   sanitize(console_json["created_at"].Data().(string)),
-		CreatedAt:     sanitize(console_json["created_at"].Data().(string)),
-		Permalink:     sanitize(console_json["permalink"].Data().(string)),
-		Url:           sanitize(console_json["url"].Data().(string)),
-		EmbedUrl:      sanitize(console_json["embed_url"].Data().(string)),
-		TerminalUrl:   sanitize(console_json["terminal_url"].Data().(string)),
+		containerType: sanitize(console_json["container_type"].Data().(string)),
+		customImage:   sanitize(console_json["created_at"].Data().(string)),
+		createdAt:     sanitize(console_json["created_at"].Data().(string)),
+		permalink:     sanitize(console_json["permalink"].Data().(string)),
+		url:           sanitize(console_json["url"].Data().(string)),
+		embedUrl:      sanitize(console_json["embed_url"].Data().(string)),
+		terminalUrl:   sanitize(console_json["terminal_url"].Data().(string)),
 	}
 	return console, nil
 }
@@ -202,164 +176,21 @@ func CreateConsole(console_req ConsoleRequest) (Console, error) {
 	if err != nil {
 		return console, err
 	}
-	fmt.Println(string(body))
+	jsonBody, err := gabs.ParseJSON(body)
+	if err != nil {
+		return console, err
+	}
+	container_name, ok := jsonBody.Search("container_name").Data().(string)
+	if ok != true {
+		return console, errors.New(ERROR_CONSOLE)
+	}
+	console, err = GetConsole(container_name)
+	if err != nil {
+		return console, err
+	}
+
 	return console, nil
 
-}
-
-func (console *Console) Status() (string, error) {
-	cp_api_path := "/consoles/" + console.containerName + "/status"
-	api := ApiRequest{
-		Endpoint: cp_api_path,
-		Method:   "GET",
-		Timeout:  time.Second * 10,
-	}
-	body, err := api.Send()
-	if err != nil {
-		return "", err
-	}
-	jsonBody, err := gabs.ParseJSON(body)
-	if err != nil {
-		return "", err
-	}
-	status, ok := jsonBody.Path("state.status").Data().(string)
-	if ok == false {
-		return "", err
-	}
-	return status, nil
-}
-
-func (console *Console) Start() error {
-	cp_api_path := "/consoles/" + console.containerName + "/start"
-	api := ApiRequest{
-		Endpoint: cp_api_path,
-		Method:   "POST",
-	}
-	_, err := api.Send()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func (console *Console) Stop() error {
-	cp_api_path := "/consoles/" + console.containerName + "/stop"
-	api := ApiRequest{
-		Endpoint: cp_api_path,
-		Method:   "POST",
-	}
-	_, err := api.Send()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func (console *Console) Restart() error {
-	cp_api_path := "/consoles/" + console.containerName + "/restart"
-	api := ApiRequest{
-		Endpoint: cp_api_path,
-		Method:   "POST",
-	}
-	_, err := api.Send()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (console *Console) Remove() error {
-	cp_api_path := "/consoles" + "/" + console.containerName
-	api := ApiRequest{
-		Endpoint: cp_api_path,
-		Method:   "DELETE",
-	}
-	_, err := api.Send()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (console *Console) Exec(command string) ([]CommandJson, error) {
-	var CmdCollection []CommandJson
-	cp_api_path := "/consoles" + "/" + console.containerName + "/exec"
-	cp_payload := ` { "commands": "` + command + `" }`
-	api := ApiRequest{
-		Endpoint: cp_api_path,
-		Method:   "POST",
-		Payload:  cp_payload,
-	}
-	body, err := api.Send()
-	if err != nil {
-		return CmdCollection, err
-	}
-	jsonBody, err := gabs.ParseJSON(body)
-	if err != nil {
-		return CmdCollection, err
-	}
-	jsonPaths, _ := jsonBody.ChildrenMap()
-	for key, child := range jsonPaths {
-		var cmd CommandJson
-		cmd.command = string(key)
-		cmd.result = child.Data().(string)
-		CmdCollection = append(CmdCollection, cmd)
-	}
-	return CmdCollection, nil
-}
-
-func (console *Console) ReadFile(file string) ([]byte, error) {
-	cp_api_path := "/consoles" + "/" + console.containerName + "/read_file?path=" + file
-	api := ApiRequest{
-		Endpoint: cp_api_path,
-		Method:   "GET",
-	}
-	body, err := api.Send()
-	if err != nil {
-		return nil, err
-	}
-	return body, nil
-}
-
-func (console *Console) Search(term string) ([]FileJson, error) {
-	var file_collection []FileJson
-	cp_api_path := "/consoles" + "/" + console.containerName + "/search?term=" + term
-	api := ApiRequest{
-		Endpoint: cp_api_path,
-		Method:   "GET",
-	}
-	body, err := api.Send()
-	if err != nil {
-		return file_collection, err
-	}
-	jsonBody, err := gabs.ParseJSON(body)
-	if err != nil {
-		return file_collection, err
-	}
-	jsonPaths, _ := jsonBody.Children()
-	for _, child := range jsonPaths {
-		file := child.Data().(map[string]interface{})
-		f := FileJson{
-			Name: file["name"].(string),
-			Size: file["size"].(float64),
-			Type: file["type"].(string),
-			Path: file["path"].(string),
-		}
-		file_collection = append(file_collection, f)
-	}
-
-	return file_collection, nil
-}
-
-func (console *Console) UploadFile(src_file string, dst_file string) ([]byte, error) {
-	cp_api_path := "/consoles" + "/" + console.containerName + "/upload_file"
-	api := ApiRequest{
-		Endpoint: cp_api_path,
-		Method:   "POST",
-	}
-	body, err := api.Upload(src_file, dst_file)
-	if err != nil {
-		return nil, err
-	}
-	return body, nil
 }
 
 func ListStacks() ([]StackJson, error) {
