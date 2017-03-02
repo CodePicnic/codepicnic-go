@@ -30,12 +30,11 @@ const ERROR_INVALID_TOKEN = "Invalid Token"
 const ERROR_USAGE_EXCEEDED = "Usage Exceeded"
 const ERROR_CONSOLE = "Console Error"
 
-var user_agent = "CodePicnic GO"
-
 type codepicnic struct {
 	ClientId     string
 	ClientSecret string
 	Token        string
+	UserAgent    string
 }
 
 var cp codepicnic
@@ -84,6 +83,7 @@ func Init(client_id string, client_secret string) error {
 	cp = codepicnic{
 		ClientId:     client_id,
 		ClientSecret: client_secret,
+		UserAgent:    "CodePicnic GO",
 	}
 	var token TokenJson
 	body, err := oauthRequest()
@@ -97,6 +97,11 @@ func Init(client_id string, client_secret string) error {
 
 func GetToken() (string, error) {
 	return cp.Token, nil
+}
+
+func SetUserAgent(user_agent string) error {
+	cp.UserAgent = user_agent
+	return nil
 }
 
 func ListConsoles() ([]Console, error) {
@@ -220,7 +225,7 @@ func (api *ApiRequest) Send() ([]byte, error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+cp.Token)
-	req.Header.Set("User-Agent", user_agent)
+	req.Header.Set("User-Agent", cp.UserAgent)
 	/*
 		var api_timeout time.Duration
 		if api.Timeout > time.Second * 0 {
@@ -237,7 +242,6 @@ func (api *ApiRequest) Send() ([]byte, error) {
 	}
 
 	client := &http.Client{
-		//Timeout: api_timeout,
 		Timeout:   time.Second * 20,
 		Transport: api_transport,
 	}
@@ -299,7 +303,7 @@ func (api *ApiRequest) Upload(src_file string, dst_file string) ([]byte, error) 
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	req.Header.Set("Authorization", "Bearer "+cp.Token)
-	req.Header.Set("User-Agent", user_agent)
+	req.Header.Set("User-Agent", cp.UserAgent)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -326,7 +330,7 @@ func oauthRequest() ([]byte, error) {
 	var jsonStr = []byte(cp_payload)
 	req, err := http.NewRequest("POST", codepicnic_oauth, bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", user_agent)
+	req.Header.Set("User-Agent", cp.UserAgent)
 	client := &http.Client{
 		Timeout: time.Second * 10,
 	}
