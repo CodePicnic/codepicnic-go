@@ -51,7 +51,7 @@ type Console struct {
 	Content       string `json:"content"`
 	Title         string `json:"title"`
 	Name          string `json:"name"`
-	ContainerName string `json:"container_name"`
+	containerName string `json:"container_name"`
 	ContainerType string `json:"container_type"`
 	CustomImage   string `json:"custom_image"`
 	CreatedAt     string `json:"created_at"`
@@ -167,7 +167,7 @@ func GetConsole(console_id string) (Console, error) {
 		Content:       sanitize(console_json["content"].Data()),
 		Title:         sanitize(console_json["title"].Data().(string)),
 		Name:          sanitize(console_json["name"].Data().(string)),
-		ContainerName: sanitize(console_json["container_name"].Data().(string)),
+		containerName: sanitize(console_json["container_name"].Data().(string)),
 		ContainerType: sanitize(console_json["container_type"].Data().(string)),
 		CustomImage:   sanitize(console_json["created_at"].Data().(string)),
 		CreatedAt:     sanitize(console_json["created_at"].Data().(string)),
@@ -208,7 +208,7 @@ func CreateConsole(console_req ConsoleRequest) (Console, error) {
 }
 
 func (console *Console) Status() (string, error) {
-	cp_api_path := "/consoles/" + console.ContainerName + "/status"
+	cp_api_path := "/consoles/" + console.containerName + "/status"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
 		Method:   "GET",
@@ -230,7 +230,7 @@ func (console *Console) Status() (string, error) {
 }
 
 func (console *Console) Start() error {
-	cp_api_path := "/consoles/" + console.ContainerName + "/start"
+	cp_api_path := "/consoles/" + console.containerName + "/start"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
 		Method:   "POST",
@@ -242,7 +242,7 @@ func (console *Console) Start() error {
 	return nil
 }
 func (console *Console) Stop() error {
-	cp_api_path := "/consoles/" + console.ContainerName + "/stop"
+	cp_api_path := "/consoles/" + console.containerName + "/stop"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
 		Method:   "POST",
@@ -254,7 +254,7 @@ func (console *Console) Stop() error {
 	return nil
 }
 func (console *Console) Restart() error {
-	cp_api_path := "/consoles/" + console.ContainerName + "/restart"
+	cp_api_path := "/consoles/" + console.containerName + "/restart"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
 		Method:   "POST",
@@ -267,7 +267,7 @@ func (console *Console) Restart() error {
 }
 
 func (console *Console) Remove() error {
-	cp_api_path := "/consoles" + "/" + console.ContainerName
+	cp_api_path := "/consoles" + "/" + console.containerName
 	api := ApiRequest{
 		Endpoint: cp_api_path,
 		Method:   "DELETE",
@@ -281,7 +281,7 @@ func (console *Console) Remove() error {
 
 func (console *Console) Exec(command string) ([]CommandJson, error) {
 	var CmdCollection []CommandJson
-	cp_api_path := "/consoles" + "/" + console.ContainerName + "/exec"
+	cp_api_path := "/consoles" + "/" + console.containerName + "/exec"
 	cp_payload := ` { "commands": "` + command + `" }`
 	api := ApiRequest{
 		Endpoint: cp_api_path,
@@ -307,7 +307,7 @@ func (console *Console) Exec(command string) ([]CommandJson, error) {
 }
 
 func (console *Console) ReadFile(file string) ([]byte, error) {
-	cp_api_path := "/consoles" + "/" + console.ContainerName + "/read_file?path=" + file
+	cp_api_path := "/consoles" + "/" + console.containerName + "/read_file?path=" + file
 	api := ApiRequest{
 		Endpoint: cp_api_path,
 		Method:   "GET",
@@ -321,7 +321,7 @@ func (console *Console) ReadFile(file string) ([]byte, error) {
 
 func (console *Console) Search(term string) ([]FileJson, error) {
 	var file_collection []FileJson
-	cp_api_path := "/consoles" + "/" + console.ContainerName + "/search?term=" + term
+	cp_api_path := "/consoles" + "/" + console.containerName + "/search?term=" + term
 	api := ApiRequest{
 		Endpoint: cp_api_path,
 		Method:   "GET",
@@ -330,12 +330,6 @@ func (console *Console) Search(term string) ([]FileJson, error) {
 	if err != nil {
 		return file_collection, err
 	}
-	/*
-		err = json.Unmarshal(body, &file_collection)
-		if err != nil {
-			return file_collection, err
-		}
-		return file_collection, nil*/
 	jsonBody, err := gabs.ParseJSON(body)
 	if err != nil {
 		return file_collection, err
@@ -352,20 +346,11 @@ func (console *Console) Search(term string) ([]FileJson, error) {
 		file_collection = append(file_collection, f)
 	}
 
-	/*
-		for key, child := range jsonPaths {
-			var file FileJson
-			file.Name = string(key)
-			file.Data = child.Data().(map[string]interface)
-			fmt.Printf("%+v", file.Data)
-			//file.Path = child.Data().(map[string]string)
-			file_collection = append(file_collection, file)
-		}*/
 	return file_collection, nil
 }
 
 func (console *Console) UploadFile(src_file string, dst_file string) ([]byte, error) {
-	cp_api_path := "/consoles" + "/" + console.ContainerName + "/upload_file"
+	cp_api_path := "/consoles" + "/" + console.containerName + "/upload_file"
 	api := ApiRequest{
 		Endpoint: cp_api_path,
 		Method:   "POST",
