@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	//"fmt"
+	"fmt"
 	"github.com/Jeffail/gabs"
 	"io"
 	"io/ioutil"
@@ -19,6 +19,9 @@ import (
 const ERROR_NOT_AUTHORIZED = "Not Authorized"
 const ERROR_NOT_CONNECTED = "Disconnected"
 const ERROR_CONNECTION_REFUSED = "Connection Refused"
+const ERROR_TCP_TIMEOUT = "TCP Timeout"
+const ERROR_CLIENT_TIMEOUT = "Client Timeout"
+const ERROR_TLS_TIMEOUT = "TLS Handshake Timeout"
 const ERROR_DNS_LOOKUP = "Host not found"
 const ERROR_NOT_FOUND = "Not Found"
 const ERROR_EMPTY_CREDENTIALS = "No Credentials"
@@ -26,15 +29,12 @@ const ERROR_EMPTY_TOKEN = "No Token"
 const ERROR_INVALID_TOKEN = "Invalid Token"
 const ERROR_USAGE_EXCEEDED = "Usage Exceeded"
 
-const CP_STATUS_ONLINE = "online"
-
 var user_agent = "CodePicnic GO"
 
 type codepicnic struct {
 	ClientId     string
 	ClientSecret string
 	Token        string
-	Status       string
 }
 
 var cp codepicnic
@@ -90,6 +90,14 @@ type FileJson struct {
 	Size float64 `json:"size"`
 }
 
+type ConsoleRequest struct {
+	Title    string
+	Size     string
+	Type     string
+	Hostname string
+	Mode     string
+}
+
 type ApiRequest struct {
 	Method   string
 	Endpoint string
@@ -110,20 +118,11 @@ func Init(client_id string, client_secret string) error {
 	}
 	err = json.Unmarshal(body, &token)
 	cp.Token = token.Access
-	cp.Status = CP_STATUS_ONLINE
 	return nil
 }
 
 func GetToken() (string, error) {
 	return cp.Token, nil
-}
-
-func GetStatus() (string, error) {
-	return cp.Status, nil
-}
-func SetStatus(status string) error {
-	cp.Status = status
-	return nil
 }
 
 func ListConsoles() ([]Console, error) {
@@ -178,6 +177,34 @@ func GetConsole(console_id string) (Console, error) {
 		TerminalUrl:   sanitize(console_json["terminal_url"].Data().(string)),
 	}
 	return console, nil
+}
+
+func CreateConsole(console_req ConsoleRequest) (Console, error) {
+	var console Console
+	if console_req.Size == "" {
+		console_req.Size = "medium"
+	}
+	if console_req.Type == "" {
+		console_req.Type = "bash"
+	}
+	if console_req.Mode == "" {
+		console_req.Mode = "draft"
+	}
+
+	cp_api_path := "/consoles"
+	cp_payload := ` { "console": { "container_size": "` + console_req.Size + `", "container_type": "` + console_req.Type + `", "title": "` + console_req.Title + `" , "hostname": "` + console_req.Hostname + `", "current_mode": "` + console_req.Mode + `" }  }`
+	api := ApiRequest{
+		Endpoint: cp_api_path,
+		Method:   "POST",
+		Payload:  cp_payload,
+	}
+	body, err := api.Send()
+	if err != nil {
+		return console, err
+	}
+	fmt.Println(body)
+	return console, nil
+
 }
 
 func (console *Console) Status() (string, error) {
@@ -404,6 +431,12 @@ func (api *ApiRequest) Send() ([]byte, error) {
 			return nil, errors.New(ERROR_DNS_LOOKUP)
 		} else if strings.Contains(err.Error(), "connection refused") {
 			return nil, errors.New(ERROR_CONNECTION_REFUSED)
+		} else if strings.Contains(err.Error(), "dial tcp: i/o timeout") {
+			return nil, errors.New(ERROR_TCP_TIMEOUT)
+		} else if strings.Contains(err.Error(), "exceeded while awaiting headers") {
+			return nil, errors.New(ERROR_CLIENT_TIMEOUT)
+		} else if strings.Contains(err.Error(), "TLS handshake timeout") {
+			return nil, errors.New(ERROR_TLS_TIMEOUT)
 		} else {
 			return nil, err
 		}
