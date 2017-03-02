@@ -238,7 +238,7 @@ func (api *ApiRequest) Send() ([]byte, error) {
 
 	client := &http.Client{
 		//Timeout: api_timeout,
-		Timeout:   time.Second * 10,
+		Timeout:   time.Second * 20,
 		Transport: api_transport,
 	}
 	resp, err := client.Do(req)
