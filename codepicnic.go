@@ -202,7 +202,7 @@ func CreateConsole(console_req ConsoleRequest) (Console, error) {
 	if err != nil {
 		return console, err
 	}
-	fmt.Println(body)
+	fmt.Println(string(body))
 	return console, nil
 
 }
