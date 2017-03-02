@@ -34,6 +34,21 @@ func main() {
 
 ```
 
+### Create Console
+
+```
+console_request := codepicnic.ConsoleRequest{
+  Title: "My Awesome Console",
+  Type:  "golang",
+}
+console, err := codepicnic.CreateConsole(console_request)
+if err != nil {
+  fmt.Println(err.Error())
+  return
+}
+
+```
+
 ### Get Consoles List 
 
 ```
@@ -70,3 +85,12 @@ console.Remove()
     }
 
 ```
+### Get Info about a Console
+
+```
+fmt.Println(console.Title())
+fmt.Println(console.Name())
+fmt.Println(console.ContainerName())
+fmt.Println(console.ContainerType())
+```
+
