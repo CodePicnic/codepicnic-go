@@ -34,7 +34,7 @@ type ConsoleRequest struct {
 }
 
 func (console *Console) Title() string {
-	return console.name
+	return console.title
 }
 func (console *Console) Name() string {
 	return console.name

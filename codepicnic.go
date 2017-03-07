@@ -27,6 +27,7 @@ const ERROR_NOT_FOUND = "Not Found"
 const ERROR_EMPTY_CREDENTIALS = "No Credentials"
 const ERROR_EMPTY_TOKEN = "No Token"
 const ERROR_INVALID_TOKEN = "Invalid Token"
+const ERROR_RENEW_TOKEN = "Token not Renewed"
 const ERROR_USAGE_EXCEEDED = "Usage Exceeded"
 const ERROR_CONSOLE = "Console Error"
 
@@ -85,6 +86,17 @@ func Init(client_id string, client_secret string) error {
 		ClientSecret: client_secret,
 		UserAgent:    "CodePicnic GO",
 	}
+	var token TokenJson
+	body, err := oauthRequest()
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(body, &token)
+	cp.Token = token.Access
+	return nil
+}
+
+func RefreshToken() error {
 	var token TokenJson
 	body, err := oauthRequest()
 	if err != nil {
@@ -263,7 +275,18 @@ func (api *ApiRequest) Send() ([]byte, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 401 {
-		return nil, errors.New(ERROR_INVALID_TOKEN)
+		err = RefreshToken()
+		if err != nil {
+			return nil, errors.New(ERROR_RENEW_TOKEN)
+		} else {
+			req.Header.Set("Authorization", "Bearer "+cp.Token)
+			resp, err = client.Do(req)
+			if err != nil {
+				return nil, err
+			}
+			defer resp.Body.Close()
+		}
+		//return nil, errors.New(ERROR_INVALID_TOKEN)
 	} else if resp.StatusCode == 429 {
 		return nil, errors.New(ERROR_USAGE_EXCEEDED)
 	} else if resp.StatusCode == 404 {
@@ -311,7 +334,17 @@ func (api *ApiRequest) Upload(src_file string, dst_file string) ([]byte, error) 
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 401 {
-		return nil, errors.New(ERROR_INVALID_TOKEN)
+		err = RefreshToken()
+		if err != nil {
+			return nil, errors.New(ERROR_RENEW_TOKEN)
+		} else {
+			req.Header.Set("Authorization", "Bearer "+cp.Token)
+			resp, err = client.Do(req)
+			if err != nil {
+				return nil, err
+			}
+			defer resp.Body.Close()
+		}
 	} else if resp.StatusCode == 429 {
 		return nil, errors.New(ERROR_USAGE_EXCEEDED)
 	} else if resp.StatusCode == 404 {
@@ -335,6 +368,9 @@ func oauthRequest() ([]byte, error) {
 		Timeout: time.Second * 10,
 	}
 	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	if err != nil {
