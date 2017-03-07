@@ -29,6 +29,7 @@ const ERROR_EMPTY_TOKEN = "No Token"
 const ERROR_INVALID_TOKEN = "Invalid Token"
 const ERROR_RENEW_TOKEN = "Token not Renewed"
 const ERROR_USAGE_EXCEEDED = "Usage Exceeded"
+const ERROR_NETWORK_UNREACHABLE = "Network Unreachable"
 const ERROR_CONSOLE = "Console Error"
 
 type codepicnic struct {
@@ -269,6 +270,8 @@ func (api *ApiRequest) Send() ([]byte, error) {
 			return nil, errors.New(ERROR_CLIENT_TIMEOUT)
 		} else if strings.Contains(err.Error(), "TLS handshake timeout") {
 			return nil, errors.New(ERROR_TLS_TIMEOUT)
+		} else if strings.Contains(err.Error(), "network is unreachable") {
+			return nil, errors.New(ERROR_NETWORK_UNREACHABLE)
 		} else {
 			return nil, err
 		}
