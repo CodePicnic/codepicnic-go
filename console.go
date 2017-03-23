@@ -117,6 +117,32 @@ func (console *Console) Restart() error {
 	return nil
 }
 
+func (console *Console) ConnectClient() error {
+	cp_api_path := "/consoles/" + console.containerName + "/connect_client"
+	api := ApiRequest{
+		Endpoint: cp_api_path,
+		Method:   "POST",
+	}
+	_, err := api.Send()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (console *Console) DisconnectClient() error {
+	cp_api_path := "/consoles/" + console.containerName + "/disconnect_client"
+	api := ApiRequest{
+		Endpoint: cp_api_path,
+		Method:   "POST",
+	}
+	_, err := api.Send()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (console *Console) Remove() error {
 	cp_api_path := "/consoles" + "/" + console.containerName
 	api := ApiRequest{
