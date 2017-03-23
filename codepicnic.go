@@ -108,8 +108,8 @@ func RefreshToken() error {
 	return nil
 }
 
-func GetToken() (string, error) {
-	return cp.Token, nil
+func GetToken() string {
+	return cp.Token
 }
 
 func SetUserAgent(user_agent string) error {
@@ -227,7 +227,8 @@ func ListStacks() ([]StackJson, error) {
 }
 
 func (api *ApiRequest) Send() ([]byte, error) {
-	var codepicnic_api = "https://codepicnic.com/api"
+	//var codepicnic_api = "https://codepicnic.com/api"
+	var codepicnic_api = "https://codeground.xyz/api"
 	var req *http.Request
 	cp_api_url := codepicnic_api + api.Endpoint
 	if len(api.Payload) > 0 {
@@ -303,7 +304,8 @@ func (api *ApiRequest) Send() ([]byte, error) {
 }
 
 func (api *ApiRequest) Upload(src_file string, dst_file string) ([]byte, error) {
-	var codepicnic_api = "https://codepicnic.com/api"
+	//var codepicnic_api = "https://codepicnic.com/api"
+	var codepicnic_api = "https://codeground.xyz/api"
 	var req *http.Request
 	cp_api_url := codepicnic_api + api.Endpoint
 	var b bytes.Buffer
@@ -361,7 +363,8 @@ func (api *ApiRequest) Upload(src_file string, dst_file string) ([]byte, error) 
 }
 
 func oauthRequest() ([]byte, error) {
-	var codepicnic_oauth = "https://codepicnic.com/oauth/token"
+	//var codepicnic_oauth = "https://codepicnic.com/oauth/token"
+	var codepicnic_oauth = "https://codeground.xyz/oauth/token"
 	cp_payload := `{ "grant_type": "client_credentials","client_id": "` + cp.ClientId + `", "client_secret": "` + cp.ClientSecret + `"}`
 	var jsonStr = []byte(cp_payload)
 	req, err := http.NewRequest("POST", codepicnic_oauth, bytes.NewBuffer(jsonStr))

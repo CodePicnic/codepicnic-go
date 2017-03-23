@@ -27,7 +27,7 @@ func main() {
     if err != nil {
         fmt.Println(err.Error())
     } else {
-        token, _ := codepicnic.GetToken()
+        token := codepicnic.GetToken()
         fmt.Println(token)
     }
 }
