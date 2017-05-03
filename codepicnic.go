@@ -154,10 +154,16 @@ func GetConsole(console_id string) (Console, error) {
 	if err != nil {
 		return console, err
 	}
+	var console_json_title string
+	if console_json["title"].Data() == nil {
+		console_json_title = ""
+	} else {
+		console_json_title = console_json["title"].Data().(string)
+	}
 	console = Console{
 		id:            int(console_json["id"].Data().(float64)),
 		content:       sanitize(console_json["content"].Data()),
-		title:         sanitize(console_json["title"].Data().(string)),
+		title:         sanitize(console_json_title),
 		name:          sanitize(console_json["name"].Data().(string)),
 		containerName: sanitize(console_json["container_name"].Data().(string)),
 		containerType: sanitize(console_json["container_type"].Data().(string)),
